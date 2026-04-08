@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>POEM If–Then Decision Support</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #eef2f7; padding: 15px; line-height: 1.6; }
+    .container { background:#fff; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.1); max-width:1000px; margin:0 auto; }
+    .header { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:25px; text-align:center; }
+    .header h1 { font-size:24px; margin-bottom:6px; }
+    .section { padding:20px; border-top:1px solid #eee; }
+    .section-title { font-size:18px; font-weight:700; margin-bottom:12px; color:#2c3e50; }
+    .bilingual { font-size:14px; color:#555; margin-bottom:10px; display:block; }
+    .form-grid { display:grid; gap:14px; }
+    .field { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .field label { font-size:15px; color:#34495e; min-width:200px; }
+    select, input[type="number"] { padding:8px 12px; border-radius:8px; border:1px solid #ccc; font-size:15px; min-width:140px; }
+    .btn-primary { width:100%; padding:14px; margin:20px 0; border:none; border-radius:10px; background:linear-gradient(135deg,#00b894,#00a085); color:#fff; font-size:17px; font-weight:700; cursor:pointer; }
+    .result-block { margin:15px 0; padding:18px; border-radius:12px; background:#f8f9fa; border-left:6px solid #3498db; }
+    .result-title { font-weight:700; font-size:18px; margin-bottom:10px; color:#2c3e50; }
+    .severe-item { background:#ffebee; border:2px solid #f44336; padding:14px; margin:14px 0; border-radius:8px; }
+    .severity-clear { border-left:6px solid #4caf50; background:#e8f5e9; }
+    .severity-mild { border-left:6px solid #ff9800; background:#fff3e0; }
+    .severity-moderate { border-left:6px solid #2196f3; background:#e3f2fd; }
+    .severity-severe { border-left:6px solid #f44336; background:#ffebee; }
+    .logic-log { margin-top:20px; padding:14px; background:#f1f3f5; font-size:13px; border-radius:8px; max-height:180px; overflow:auto; white-space:pre-line; }
+    .env-status { margin:10px 0; padding:10px; background:#f0f8ff; border-radius:8px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>POEM If–Then 濕疹決策支援系統</h1>
+    <h1>Patient-Oriented Eczema Measure If–Then Decision Support System</h1>
+
+  </div>
+
+  <!-- 免責聲明 -->
+  <div class="section">
+    <div class="section-title">免責聲明 / Disclaimer</div>
+    <small class="bilingual">
+本指南是根據 POEM 分數、症狀頻率閾值及環境修飾因子所建立的層級決策樹而制定，用於日常濕疹護理參考。請務必優先聽取醫生的專業建議。遵循這些指南並不能保證在所有情況下都能成功治療。此外，這些指南不應被解釋為設定了治療標準，也不應被視為涵蓋所有適當的治療方法，或排除其他旨在獲得相同結果的合理治療方法。任何特定療法的適用性最終判斷必須由醫生和患者根據患者的具體情況以及疾病已知的變異性和生物學行為而做出。本指南反映了指南制定時可獲得的最佳數據。未來的研究結果可能需要對本指南中的建議進行修訂，以反映新的數據。
+ This guideline is derived from a hierarchical decision tree based on POEM scores, symptom frequency thresholds, and environmental modifiers, intended for daily eczema care. Please always prioritize medical advice from your doctor. Adherence to these guidelines will not ensure successful treatment in every situation. In addition, these guidelines should not be interpreted as setting a standard of care, or be deemed inclusive of all proper methods of care nor exclusive of other methods of care reasonably directed to obtaining the same results. The ultimate judgment regarding
+       the propriety of any specific therapy must be made by the physician and the patient in light of all the circumstances presented by the individual patient and the known variability and biologic behavior of the disease. This guideline reflects the best available data at the time the guideline was prepared. The results of future studies may require revisions 
+       to the recommendations in this guideline to reflect new data.</small>
+  </div>
+
+  <!-- 症狀輸入 -->
+  <div class="section">
+    <div class="section-title">
+      1. 在過去一週，你的濕疹有多少天造成以下問題？<br>
+      Over the last week, on how many days has your eczema caused the following?
+    </div>
+    <div class="form-grid">
+      <div class="field"><label>Q1 搔癢 / Itching</label><select id="q1"><option value="0">0 (天/day)</option><option value="1">1–2 (天/days)</option><option value="2">3–4 (天/days)</option><option value="3">5–6 (天/days)</option><option value="4">每天 / everyday</option></select></div>
+      <div class="field"><label>Q2 睡眠干擾 / Sleep disturbance</label><select id="q2"><option value="0">0 (天/day)</option><option value="1">1–2 (天/days)</option><option value="2">3–4 (天/days)</option><option value="3">5–6 (天/days)</option><option value="4">每天 / everyday</option></select></div>
+      <div class="field"><label>Q3 流血 / Bleeding</label><select id="q3"><option value="0">0 (天/day)</option><option value="1">1–2 (天/days)</option><option value="2">3–4 (天/days)</option><option value="3">5–6 (天/days)</option><option value="4">每天 / everyday</option></select></div>
+      <div class="field"><label>Q4 滲液 / Weeping/oozing</label><select id="q4"><option value="0">0 (天/day)</option><option value="1">1–2 (天/days)</option><option value="2">3–4 (天/days)</option><option value="3">5–6 (天/days)</option><option value="4">每天 / everyday</option></select></div>
+      <div class="field"><label>Q5 皸裂 / Cracking</label><select id="q5"><option value="0">0 (天/day)</option><option value="1">1–2 (天/days)</option><option value="2">3–4 (天/days)</option><option value="3">5–6 (天/days)</option><option value="4">每天 / everyday</option></select></div>
+      <div class="field"><label>Q6 脫屑 / Flaking off</label><select id="q6"><option value="0">0 (天/day)</option><option value="1">1–2 (天/days)</option><option value="2">3–4 (天/days)</option><option value="3">5–6 (天/days)</option><option value="4">每天 / everyday</option></select></div>
+      <div class="field"><label>Q7 乾燥 / Dryness</label><select id="q7"><option value="0">0 (天/day)</option><option value="1">1–2 (天/days)</option><option value="2">3–4 (天/days)</option><option value="3">5–6 (天/days)</option><option value="4">每天 / everyday</option></select></div>
+    </div>
+  </div>
+
+  <!-- 環境與行為因素 -->
+  <div class="section">
+    <div class="section-title">2. 環境與行為因素 / Environmental & Behavioral Factors</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>香港室內濕度 / Indoor humidity in HK (%)</label>
+        <input type="number" id="humidity" min="20" max="100" value="80">
+      </div>
+      <div class="field">
+        <label>潤膚劑使用規律 / Moisturizer adherence</label>
+        <select id="adherence">
+          <option value="good">每日 ≥2 次 / ≥2 times/day</option>
+          <option value="poor">每日 0–1 次 / 0–1 times/day</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>主要誘因 / Primary trigger</label>
+        <select id="trigger">
+          <option value="none">無明顯 / No obvious</option>
+          <option value="heat">熱,出汗 / Heat, Sweating</option>
+          <option value="soap">肥皂,清潔劑 / Soap, Detergents</option>
+          <option value="stress">壓力 / Stress</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="runDecision()">⚙️ 執行決策樹 / Run Decision Tree</button>
+  </div>
+
+<!-- 結果區 -->
+  <div class="section">
+    <div class="section-title">3. 決策樹輸出結果 / Decision Tree Results</div>
+
+    <!-- POEM 總分 -->
+    <div id="totalScoreBlock" class="result-block" style="display:none; text-align:center;"></div>
+
+    <!-- 首要治療建議（新區域） -->
+    <div id="priorityResult" class="result-block" style="display:none;"></div>
+
+    <!-- 次要 / 多症狀 -->
+    <div id="secondaryResult" class="result-block" style="display:none;"></div>
+
+    <!-- 環境與行為調整（已移到所有症狀分級建議之後） -->
+    <div id="envResult" class="result-block" style="display:none;"></div>
+
+    <!-- 所有症狀分級建議 -->
+    <div id="mildResult" class="result-block" style="display:none;"></div>
+
+    <div class="logic-log" id="logicLog" style="display:none;"></div>
+
+    <!-- 問卷按鈕 -->
+    <button class="btn-primary" id="surveyBtn" style="margin:30px auto; display:none;" onclick="window.open('https://forms.gle/FpfzTYFr1uKna9X67', '_blank')">
+      📋 填寫濕疹症狀追蹤問卷<br>
+      Fill in Eczema Symptom Tracking Survey
+    </button>
+  </div>
+</div>
+
+<script>
+// ============================================
+function runDecision() {
+  // 取值
+  const q1 = Number(document.getElementById('q1').value);
+  const q2 = Number(document.getElementById('q2').value);
+  const q3 = Number(document.getElementById('q3').value);
+  const q4 = Number(document.getElementById('q4').value);
+  const q5 = Number(document.getElementById('q5').value);
+  const q6 = Number(document.getElementById('q6').value);
+  const q7 = Number(document.getElementById('q7').value);
+
+  const humidity = Number(document.getElementById('humidity').value);
+  const adherence = document.getElementById('adherence').value;
+  const trigger = document.getElementById('trigger').value;
+
+  const totalPOEM = q1 + q2 + q3 + q4 + q5 + q6 + q7;
+
+  // POEM 總分與嚴重度分級（Charman 2007 / HOME consensus）
+  let severity = { en: "Clear / almost clear", zh: "幾乎無症狀" };
+  let severityClass = "severity-clear";
+  if (totalPOEM >= 3 && totalPOEM <= 7) { severity = { en: "Mild", zh: "輕度" }; severityClass = "severity-mild"; }
+  else if (totalPOEM >= 8 && totalPOEM <= 16) { severity = { en: "Moderate", zh: "中度" }; severityClass = "severity-moderate"; }
+  else if (totalPOEM >= 17 && totalPOEM <= 24) { severity = { en: "Severe", zh: "重度" }; severityClass = "severity-severe"; }
+  else if (totalPOEM >= 25) { severity = { en: "Very severe", zh: "極重度" }; severityClass = "severity-severe"; }
+
+  document.getElementById('totalScoreBlock').innerHTML = `
+    <div style="font-size:24px; margin-bottom:12px;">
+      POEM 總分 / Total Score: <strong>${totalPOEM}</strong>
+    </div>
+    <div class="${severityClass}" style="padding:12px 20px; border-radius:10px; font-size:18px;">
+      嚴重度等級 / Severity Level: <strong>${severity.zh} (${severity.en})</strong>
+    </div>`;
+  document.getElementById('totalScoreBlock').style.display = 'block';
+
+//
+
+// === 首要治療建議區域 ===
+  let priorityHTML = '';
+  if (q4 === 4) {
+    priorityHTML = `<div class="result-title">🚨 首要治療建議 / Priority Recommendation</div>
+      <div class="severe-item">滲液Weeping = 4（最高風險）<br>立即安排皮膚科評估 + 使用吸收性敷料 + 避免擠壓</div>`;
+  } else if (q2 === 4) {
+    priorityHTML = `<div class="result-title">🚨 首要治療建議 / Priority Recommendation</div>
+      <div class="severe-item">睡眠干擾Sleep disturbance = 4<br>48小時內尋求醫師評估 + 優化睡眠衛生</div>`;
+  } else if (q3 === 4 || q6 === 4 || q1 === 4) {
+    priorityHTML = `<div class="result-title">🚨 首要治療建議 / Priority Recommendation</div>
+      <div class="severe-item">流血Bleeding / 脫屑Flaking / 搔癢Itching = 4<br>加強局部護理 + 避免抓癢 + 每日檢查感染跡象</div>`;
+  } else if (q5 === 4 || q7 === 4) {
+    priorityHTML = `<div class="result-title">🚨 首要治療建議 / Priority Recommendation</div>
+      <div class="severe-item">皸裂Cracking / Dryness = 4<br>加強屏障修復 + 避免熱水 + 維持保濕</div>`;
+  }
+
+  document.getElementById('priorityResult').innerHTML = priorityHTML;
+  document.getElementById('priorityResult').style.display = priorityHTML ? 'block' : 'none';
+
+
+
+//
+  // 高風險判斷
+  const highRiskDaily = { weeping: q4===4, sleep: q2===4, bleeding: q3===4, flaking: q6===4, itching: q1===4 };
+  const secondaryDaily = { cracking: q5===4, dryness: q7===4 };
+  const highRiskCount = Object.values(highRiskDaily).filter(Boolean).length;
+  const anyHighRisk = highRiskCount > 0;
+  const anySecondary = secondaryDaily.cracking || secondaryDaily.dryness;
+
+  let primary = '', secondary = '', envAdvice = '', mildAdvice = '';
+  let log = [];
+
+  // Primary decision node
+  if (highRiskDaily.weeping) {
+    primary = `
+      <div class="result-title">🚨 滲液 Weeping = 4 (r=0.88)</div>
+      <div>
+        優先判定：每日滲液/疑似感染 → <strong style="color:red;">立即安排皮膚科或家庭醫生評估</strong>。<br>
+        在就醫前，可先使用乾淨吸收性敷料覆蓋滲液部位，避免擠壓或自行擠膿；避免共用毛巾與衣物。<br>
+        Priority: Daily oozing/suspected infection → <strong style="color:red;">Immediate dermatology or family doctor evaluation</strong>.
+      </div>`;
+    log.push('Layer 1: Weeping=4 → urgent referral');
+  } else if (highRiskDaily.sleep) {
+    primary = `
+      <div class="result-title">😴 Sleep disturbance = 4 (r=0.70 ★高風險)</div>
+      <div>
+        每天嚴重失眠，屬重度功能損害 → <strong style="color:red;">48小時內尋求醫師評估整體治療方案</strong>。<br>
+        立即優化睡眠衛生：固定作息、睡前 30 分鐘關閉螢幕、臥室維持約 24°C、安靜與昏暗。<br>
+        Severe daily insomnia → <strong style="color:red;">Urgent physician review within 48 hours</strong>.
+      </div>`;
+    log.push('Layer 2: Sleep=4 → severe insomnia pathway');
+  } else if (highRiskDaily.bleeding || highRiskDaily.flaking || highRiskDaily.itching) {
+    let list = [];
+    if (highRiskDaily.bleeding) list.push('每日流血 / Daily bleeding');
+    if (highRiskDaily.flaking) list.push('每日明顯脫屑 / Daily flaking');
+    if (highRiskDaily.itching) list.push('每日劇烈搔癢 / Daily intense itching');
+
+    primary = `
+      <div class="result-title">⚠️ 高相關症狀每日出現 / High-risk daily symptoms detected</div>
+      <div>
+        偵測到：${list.join('、')}（至少一項得分=4）。<br>
+        建議加強局部護理與及早醫師評估：<br>
+        • 避免抓挖與摩擦，必要時使用防抓衣物或棉手套。<br>
+        • 每日檢查皮膚是否出現紅腫熱痛或膿點，如有則提高就醫優先順序。<br>
+        Recommendation: Strengthen local care & seek early physician evaluation.
+      </div>`;
+    log.push('Layer 3: Bleeding/Flaking/Itching=4 → targeted management');
+  } else if (anySecondary) {
+    let secList = [];
+    if (secondaryDaily.cracking) secList.push('每日皸裂 / Daily cracking');
+    if (secondaryDaily.dryness) secList.push('每日嚴重乾燥 / Daily severe dryness');
+
+    primary = `
+      <div class="result-title">🧱 次要症狀每日出現（屏障問題） / Secondary daily symptoms (barrier issues)</div>
+      <div>
+        偵測到：${secList.join('、')}。<br>
+        目前以皮膚屏障修復與預防惡化為主：避免熱水、頻繁接觸清潔劑與機械摩擦，並維持規律保濕與保護性衣物。<br>
+        Focus on skin barrier repair & prevention of worsening: avoid hot water, frequent cleansers/friction, maintain regular moisturizing & protective clothing.
+      </div>`;
+    log.push('Layer 4: Cracking/Dryness=4 → barrier focus');
+  } else {
+    primary = `
+      <div class="result-title">✅ 無每日高負擔症狀 / No daily high-burden symptoms</div>
+      <div>
+        所有 POEM 題目均未達每日（4 分）等級。<br>
+        建議持續每 1–2 週重複 POEM 自我評估，監測趨勢變化。<br>
+        Recommend repeat POEM self-assessment every 1–2 weeks to monitor trends.
+      </div>`;
+    log.push('Layer 5: No score=4 → maintenance');
+  }
+
+  // 多症狀急性發作判斷
+  if (highRiskCount > 2) {
+    secondary = `
+      <div class="result-title">🔥 多症狀急性發作 (high-risk ≥3 項 = 4) / Multi-symptom acute flare</div>
+      <div>
+        偵測到三項或以上高相關症狀每日出現，屬多系統急性發作。<br>
+        建議：重新完成一次完整 POEM 及/或由醫師評估是否需升級系統性治療（如生物製劑或小分子標靶）。<br>
+        建議整理一週內的症狀日記與誘因紀錄，帶往門診討論。<br>
+        Detected ≥3 high-risk daily symptoms → multi-system acute flare. Recommend repeat full POEM and/or physician evaluation for escalation (e.g. biologics/targeted therapy).
+      </div>`;
+  } else if (anyHighRisk || anySecondary) {
+    secondary = `
+      <div class="result-title">📈 單或雙症狀惡化 / Single or dual symptom worsening</div>
+      <div>
+        雖未達多症狀發作，但已有一到兩個每日症狀。<br>
+        建議：1 週內重做 POEM，觀察分數是否持續上升。<br>
+        若症狀影響工作、學習或情緒，即使分數未達「重度」，亦可提前就醫諮詢。<br>
+        One or two daily symptoms detected. Recommend repeat POEM in 1 week; seek earlier consultation if impacting work/study/mood.
+      </div>`;
+  }
+
+  // 環境與行為調整
+  let envTags = [];
+  let envText = [];
+
+  // 總是顯示目前三項狀態
+  envAdvice = `
+    <div class="result-title">🌦 環境與行為調整（修飾因子） / Environmental & Behavioral Modifiers</div>
+    <div class="env-status">
+      <strong>目前狀態 / Current Status:</strong><br>
+      • 香港室內濕度 / Indoor humidity: <strong>${humidity}%</strong><br>
+      • 潤膚劑使用規律 / Moisturizer adherence: <strong>${adherence === 'good' ? '每日 ≥2 次 (Good)' : '每日 0–1 次 (Poor)'}</strong><br>
+      • 主要誘因 / Primary trigger: <strong>${trigger === 'none' ? '無明顯 (None)' : trigger === 'heat' ? '熱/出汗 (Heat/Sweating)' : trigger === 'soap' ? '肥皂/清潔劑 (Soap/Detergents)' : '壓力 (Stress)'}</strong>
+    </div>`;
+
+  // 如果有任何症狀 ≥1 分，才加建議內容
+  if (q1 >= 1 || q2 >= 1 || q3 >= 1 || q4 >= 1 || q5 >= 1 || q6 >= 1 || q7 >= 1) {
+    if (humidity >= 80) {
+      envTags.push('<span class="tag tag-env">高濕度 / High Humidity</span>');
+      envText.push('目前環境濕度偏高（≥80%），建議使用冷氣與除濕機，將室內濕度調整至約 50–60%，減少悶熱與出汗誘發。<br>High humidity (≥80%) detected. Recommend air conditioning + dehumidifier to maintain 50–60% to reduce sweat-triggered flares.');
+    }
+    if (adherence === 'poor') {
+      envTags.push('<span class="tag tag-adherence">潤膚依從性差 / Poor Adherence</span>');
+      envText.push('潤膚依從性欠佳（每日 ≤1 次），建議設定手機提醒、將潤膚產品放在容易看見的位置，並以一次塗全身的方式節省時間，提升持續性。<br>Poor adherence (≤1 time/day). Suggest phone reminders, visible placement, and full-body application in one go to improve consistency.');
+    }
+    if (trigger === 'heat') {
+      envTags.push('<span class="tag tag-env">熱/出汗 / Heat/Sweating</span>');
+      envText.push('如熱與出汗是主要誘因，建議：減少長時間戶外活動於高溫時段，運動後儘快沖洗並更換乾爽衣物。<br>Heat/sweating as main trigger: Reduce prolonged outdoor activity in heat, rinse & change to dry clothes promptly after exercise.');
+    } else if (trigger === 'soap') {
+      envTags.push('<span class="tag tag-env">肥皂/清潔劑 / Soap/Detergents</span>');
+      envText.push('如肥皂或清潔劑為誘因，可改用無香料、無皂鹼的潔膚產品，並戴手套處理清潔工作。<br>Soap/detergents as trigger: Switch to fragrance-free, soap-free cleansers; wear gloves for cleaning tasks.');
+    } else if (trigger === 'stress') {
+      envTags.push('<span class="tag tag-env">壓力 / Stress</span>');
+      envText.push('如壓力為主要誘因，可嘗試每日簡短的呼吸放鬆或正念練習，並建立規律作息。詳情參考衞生署情緒健康小錦囊：<a href="https://www.studenthealth.gov.hk/tc_chi/emotional_health_tips/eht_re/eht_re.html" target="_blank">身心鬆弛練習</a>。<br>Stress as main trigger: Try daily short breathing relaxation or mindfulness; maintain regular routine. See Dept of Health tips: <a href="https://www.studenthealth.gov.hk/tc_chi/emotional_health_tips/eht_re/eht_re.html" target="_blank">Relaxation Exercises</a>.');
+    }
+
+    if (envTags.length) envAdvice += `<div style="margin:12px 0;">${envTags.join(' ')}</div>`;
+    if (envText.length) envAdvice += `<div style="margin-top:10px;">${envText.join('<hr style="margin:12px 0; border:0; border-top:1px solid #eee;">')}</div>`;
+  } else {
+    envAdvice += `<div style="margin-top:10px; color:#555;">目前無症狀，建議維持良好環境與潤膚習慣 / No symptoms detected, maintain good environment & moisturizing habits.</div>`;
+  }
+
+  // 所有項目分級建議（包含 4 分）
+  const scores = { q1, q2, q3, q4, q5, q6, q7 };
+  const labels = {
+    q1: { zh: 'Q1 搔癢 / Itching', en: 'Q1 Itching' },
+    q2: { zh: 'Q2 睡眠干擾 / Sleep disturbance', en: 'Q2 Sleep disturbance' },
+    q3: { zh: 'Q3 流血 / Bleeding', en: 'Q3 Bleeding' },
+    q4: { zh: 'Q4 滲液 / Weeping', en: 'Q4 Weeping' },
+    q5: { zh: 'Q5 皸裂 / Cracking', en: 'Q5 Cracking' },
+    q6: { zh: 'Q6 脫屑 / Flaking', en: 'Q6 Flaking' },
+    q7: { zh: 'Q7 乾燥 / Dryness', en: 'Q7 Dryness' }
+  };
+
+  // adviceData 完整物件
+const adviceData = {
+  q1: {
+    0: { 
+      desc: { zh: "完全無痕癢； 使用預防性保養措施", en: "No itching at all; Use preventive care measures" },
+      advice: { 
+        zh: "維持日常保養，保持環境清潔（如定期清掃灰塵，避免過敏原）；使用無香料潤膚劑每日塗抹以預防乾燥引發搔癢。",
+        en: "Maintain daily skincare, keep environment clean (e.g., regular dusting, avoid allergens); apply fragrance-free moisturizer daily to prevent dryness-induced itching."
+      }
+    },
+    1: { 
+      desc: { zh: "1-2 天輕微痕癢，易忽略； 使用輕微預防惡化措施", en: "1-2 days mild itching, easily ignored; Use mild preventive measures to avoid worsening" },
+      advice: { 
+        zh: "每日 2 次凡士林或無香料潤膚劑（早晚洗澡後 5 分鐘內塗抹），穿棉質寬鬆衣物以減少摩擦；避免粗糙織物和極端溫度（熱或冷）；短浴（<10 分鐘，溫水）後輕拍乾燥。",
+        en: "Apply petroleum jelly or fragrance-free moisturizer twice daily (within 5 min after morning & night shower), wear loose cotton clothing to reduce friction; avoid rough fabrics and extreme temperatures (hot/cold); short lukewarm bath (<10 min) and pat dry."
+      }
+    },
+    2: { 
+      desc: { zh: "3-4 天明顯痕癢，影響專注; 使用中度管理原則", en: "3-4 days obvious itching, affecting concentration; Use moderate management principles" },
+      advice: { 
+        zh: "考慮在醫師指導下正確執行冷敷(常見推薦15 分鐘)，必須用冰袋裹毛巾，避免直接接觸皮膚+ 指甲剪至 <1mm + 避免熱水澡（一般推薦水溫 <37°C，使用溫水短浴）；分散注意力（如音樂或閱讀）；使用無刺激清潔劑。",
+        en: "Consider correct cold compress under physician guidance (commonly recommended 15 min), must wrap ice pack with towel to avoid direct skin contact + trim nails to <1mm + avoid hot baths (generally <37°C, use lukewarm short bath); distract attention (e.g. music or reading); use non-irritating cleansers."
+      }
+    },
+    3: { 
+      desc: { zh: "5-6 天難耐痕癢，干擾工作; 使用中度至中重度管理原則", en: "5-6 days unbearable itching, interfering with work; Use moderate to moderately severe management principles" },
+      advice: { 
+        zh: "維持室溫 24°C 涼房 + 全棉睡衣 + 出汗立即換衣 + 分散注意力（例如聽音樂或閱讀書籍，避免抓癢）；考慮在醫師指導下正確執行濕敷療法（一般推薦濕紗布裹敷嚴重區域 2-4 小時，促進保濕）；避免刺激物（如香味清潔劑或織物柔軟劑）。",
+        en: "Maintain room temperature 24°C cool environment + all-cotton sleepwear + change clothes immediately after sweating + distract attention (e.g. music or reading, avoid scratching); consider correct wet wrap therapy under physician guidance (generally recommended wet gauze wrap on severe areas 2-4 hours to promote hydration); avoid irritants (e.g. scented cleansers or fabric softeners)."
+      }
+    },
+    4: { 
+      desc: { zh: "每天劇烈痕癢，無法忍受; 使用中重度至重度急性期管理原則", en: "Daily intense itching, unbearable; Use moderate-severe to severe acute phase management principles" },
+      advice: { 
+        zh: "考慮在醫師指導下正確執行冰袋敷(常見推薦劑量: 10-15 分鐘 x 4 次/日)，必須用毛巾包裹冰袋，不直接接觸皮膚，否則易凍傷 + 防抓手套或長袖衣物 + 冷氣維持 24°C 持續 + 避免所有觸發物（如塵蟎、寵物毛、刺激性織物）；考慮在醫師指導下正確執行濕敷療法（使用濕長袖衣或紗布，覆蓋乾衣，短暫使用以減輕嚴重搔癢）；每天記錄癢感分數、觸發物、用藥、環境變化，幫助醫師調整治療、及早發現惡化;建議盡快看皮膚科並帶上症狀記錄",
+        en: "Consider correct ice pack application under physician guidance (commonly recommended: 10-15 min × 4 times/day), must wrap ice pack with towel, no direct skin contact to avoid frostbite + anti-scratch gloves or long-sleeve clothing + maintain air conditioning at 24°C continuously + avoid all triggers (e.g. dust mites, pet dander, irritating fabrics); consider correct wet wrap therapy under physician guidance (use wet long-sleeve or gauze, cover with dry layer, short-term use to relieve severe itching); daily record itch score, triggers, medications, environmental changes to help physician adjust treatment and detect worsening early; recommend seeing dermatologist as soon as possible with symptom record."
+      }
+    }
+  },
+  q2: {
+    0: { 
+      desc: { zh: "睡眠完全正常； 使用預防性保養措施", en: "Sleep completely normal; Use preventive care measures" },
+      advice: { zh: "維持固定作息；使用防蟎床單套", en: "Maintain regular sleep schedule; use anti-mite bed sheets" }
+    },
+    1: { 
+      desc: { zh: "1-2 天偶爾難入睡； 使用輕微預防惡化措施", en: "1-2 days occasional difficulty falling asleep; Use mild preventive measures to avoid worsening" },
+      advice: { 
+        zh: "睡前 30 分鐘關閉螢幕，房間溫度 24°C，濕度 <60%（使用除濕機控制）；避免睡前飲食；穿全棉睡衣。",
+        en: "Turn off screens 30 min before bed, room temperature 24°C, humidity <60% (use dehumidifier); avoid eating before bed; wear 100% cotton sleepwear."
+      }
+    },
+    2: { 
+      desc: { zh: "3-4 天經常半夜醒來; 使用中度管理原則，避免夜間痕癢高峰，改善夜醒", en: "3-4 days frequent waking at night; Use moderate management principles to avoid nocturnal itch peaks and improve night waking" },
+      advice: { 
+        zh: "睡前 30 分鐘關閉螢幕，維持房間溫度 24°C+ 純棉被單 + 睡前避免飲食，指甲剪至 <1mm 以防夜間抓癢；考慮在醫師指導下正確執行濕敷療法，（於睡前濕紗布覆蓋乾層，常見推薦2-4 小時）；避免刺激物如粗糙床單。",
+        en: "Turn off screens 30 min before bed, maintain room temperature 24°C + pure cotton bedding + avoid food before bed, trim nails to <1mm to prevent nocturnal scratching; consider correct wet wrap therapy under physician guidance (wet gauze covered with dry layer before bed, commonly recommended 2-4 hours); avoid irritants such as rough bed sheets."
+      }
+    },
+    3: { 
+      desc: { zh: "5-6 天幾乎無完整睡眠; 使用中度至中重度管理原則", en: "5-6 days almost no complete sleep; Use moderate to moderately severe management principles" },
+      advice: { 
+        zh: "睡前 30 分鐘關閉螢幕，除濕機連續運作 + 防抓手套整夜佩戴 + 睡前冷水擦身（避免熱水，使用涼水輕拭）；考慮在醫師指導下正確執行漂白水浴(自用可能反效果，甚至灼傷)；建立睡眠日誌追蹤觸發因素。",
+        en: "Turn off screens 30 min before bed, continuous dehumidifier + wear anti-scratch gloves all night + cold water wipe before bed (avoid hot water, use cool water gently); consider correct dilute bleach bath under physician guidance (self-use may cause adverse effects or burns); establish sleep log to track triggers."
+      }
+    },
+    4: { 
+      desc: { zh: "每天完全失眠; 使用中重度至重度急性期管理原則", en: "Daily complete insomnia; Use moderate-severe to severe acute phase management principles" },
+      advice: { 
+        zh: "睡前 30 分鐘關閉螢幕，全套緊急環境控制：冷氣 24°C + 除濕機 + 防抓衣物 + 優化睡眠環境；考慮在醫師指導下正確執行濕敷療法，濕敷整夜（使用濕睡衣覆蓋乾睡衣）。",
+        en: "Turn off screens 30 min before bed, full emergency environmental control: air conditioning 24°C + dehumidifier + anti-scratch clothing + optimize sleep environment; consider correct wet wrap therapy under physician guidance, overnight wet wrap (use wet sleepwear covered with dry sleepwear)."
+      }
+    }
+  },
+  q3: {
+    0: { 
+      desc: { zh: "完全無出血； 使用預防性保養措施", en: "No bleeding at all; Use preventive care measures" },
+      advice: { zh: "維持日常清潔和保濕；預防性避免抓癢行為。", en: "Maintain daily cleansing and moisturizing; preventively avoid scratching behavior." }
+    },
+    1: { 
+      desc: { zh: "1-2 天偶爾抓出血點； 處理少量出血傷口及使用輕微預防惡化措施", en: "1-2 days occasional bleeding spots from scratching; Treat minor bleeding wounds and use mild preventive measures to avoid worsening" },
+      advice: { 
+        zh: "立即凡士林封閉傷口，避免再抓，剪指甲以防進一步損傷；溫水短浴後輕拍乾燥；使用無刺激清潔劑。",
+        en: "Immediately seal wound with petroleum jelly, avoid further scratching, trim nails to prevent further damage; pat dry after short lukewarm bath; use non-irritating cleanser."
+      }
+    },
+    2: { 
+      desc: { zh: "3-4 天經常抓傷出血； 處理少量出血傷口及使用中度管理原則", en: "3-4 days frequent scratching with bleeding; Treat minor bleeding wounds and use moderate management principles" },
+      advice: { 
+        zh: "夜間使用凡士林 + 保鮮膜輕裹，促進癒合+ 棉質長袖衣物保護皮膚；避免熱水和刺激物；若有感染跡象，考慮在醫師指導下正確執行漂白浴（自用可能反效果，甚至灼傷）。",
+        en: "Nighttime petroleum jelly + light plastic wrap to promote healing + cotton long-sleeve clothing to protect skin; avoid hot water and irritants; if signs of infection, consider correct dilute bleach bath under physician guidance (self-use may cause adverse effects or burns)."
+      }
+    },
+    3: { 
+      desc: { zh: "5-6 天明顯血痂/滲血; 處理慢性傷口及使用中度至中重度管理原則", en: "5-6 days obvious blood crust/oozing; Treat chronic wounds and use moderate to moderately severe management principles" },
+      advice: { 
+        zh: "剪指甲至無邊緣 + 防抓衣物整天佩戴 + 頻繁清潔傷口 + 立即潤膚以保持濕潤；考慮在醫師指導下正確執行濕敷療法（濕紗布 2-3 層，覆蓋乾層，短暫使用）；通風浴室以減少刺激。",
+        en: "Trim nails to smooth edges + wear anti-scratch clothing all day + frequent wound cleansing + immediate moisturizing to keep moist; consider correct wet wrap therapy under physician guidance (2-3 layers wet gauze, covered with dry layer, short-term use); ventilate bathroom to reduce irritation."
+      }
+    },
+    4: { 
+      desc: { zh: "每天持續流血/血痂; 即日評估，處理嚴重破損傷口及使用中重度至重度急性期管理原則", en: "Daily continuous bleeding/blood crust; Same-day assessment, treat severe damaged wounds and use moderate-severe to severe acute phase management principles" },
+      advice: { 
+        zh: "🚨 即日皮膚科評估 (開放傷口易感染，延遲可能留疤)+ 全天防抓措施 + 清潔後傷口使用凡士林 + 保鮮膜輕裹，減少摩擦）；考慮在醫師指導下正確執行漂白水浴(自用可能反效果，甚至灼傷)，患者行動計劃（如記錄傷口變化，避免氨基清潔劑）。",
+        en: "🚨 Same-day dermatology assessment (open wounds easy to infect, delay may cause scarring) + all-day anti-scratch measures + post-cleaning apply petroleum jelly + light plastic wrap to reduce friction; consider correct dilute bleach bath under physician guidance (self-use may cause adverse effects or burns), patient action plan (e.g. record wound changes, avoid ammonia-based cleaners)."
+      }
+    }
+  },
+  q4: {
+    0: { 
+      desc: { zh: "完全無滲液； 使用預防性保養措施", en: "No oozing at all; Use preventive care measures" },
+      advice: { zh: "預防性保濕；維持乾燥環境。", en: "Preventive moisturizing; maintain dry environment." }
+    },
+    1: { 
+      desc: { zh: "1-2 天輕微濕潤; 止滲及使用輕微預防惡化措施", en: "1-2 days mild wetness; Stop oozing and use mild preventive measures to avoid worsening" },
+      advice: { zh: "加強清潔（溫水 + 無香皂）+ 徹底乾燥後潤膚。", en: "Enhance cleansing (lukewarm water + no soap) + moisturize thoroughly after drying." }
+    },
+    2: { 
+      desc: { zh: "3-4 天明顯滲出液體; 使用中度管理原則", en: "3-4 days obvious oozing fluid; Use moderate management principles" },
+      advice: { 
+        zh: "每日更換吸收性紗布敷料 + 保持乾燥環境（如使用除濕機）；考慮在醫師指導下正確執行漂白水浴(自用可能反效果，甚至灼傷)。",
+        en: "Change absorbent gauze dressing daily + maintain dry environment (e.g. use dehumidifier); consider correct dilute bleach bath under physician guidance (self-use may cause adverse effects or burns)."
+      }
+    },
+    3: { 
+      desc: { zh: "5-6 天大量滲液浸濕衣物; 使用中度至中重度管理原則", en: "5-6 days heavy oozing soaking clothes; Use moderate to moderately severe management principles" },
+      advice: { 
+        zh: "頻繁更換吸收性紗布敷料（常見推薦每日 4-6 次）+ 使用冷氣乾燥空氣以減少濕度（常見推薦24°C + 除濕）；考慮在醫師指導下正確執行濕敷療法（濕紗布覆蓋嚴重區域）；考慮在醫師指導下正確執行漂白水浴((自用可能反效果，甚至灼傷)。",
+        en: "Frequent change of absorbent gauze dressing (commonly recommended 4-6 times/day) + use air conditioning to dry air and reduce humidity (commonly recommended 24°C + dehumidifier); consider correct wet wrap therapy under physician guidance (wet gauze on severe areas); consider correct dilute bleach bath under physician guidance (self-use may cause adverse effects or burns)."
+      }
+    },
+    4: { 
+      desc: { zh: "每天連續膿液; 即時就醫，使用中重度至重度急性期管理原則", en: "Daily continuous pus; Immediate medical attention, use moderate-severe to severe acute phase management principles" },
+      advice: { 
+        zh: "🚨 即時就醫(因為連續膿液表示嚴重感染，需要緊急醫療介入) + 持續吸收敷料 + 感染隔離（重點在環境控制，如隔離觸發物）；考慮在醫師指導下正確執行漂白水浴(自用可能反效果，甚至灼傷)",
+        en: "🚨 Immediate medical attention (continuous pus indicates severe infection requiring emergency intervention) + continuous absorbent dressing + infection isolation (focus on environmental control, e.g. isolate triggers); consider correct dilute bleach bath under physician guidance (self-use may cause adverse effects or burns)"
+      }
+    }
+  },
+  q5: {
+    0: { 
+      desc: { zh: "完全無裂口； 使用預防性保養措施", en: "No cracks at all; Use preventive care measures" },
+      advice: { zh: "維持基本保濕；避免摩擦。", en: "Maintain basic moisturizing; avoid friction." }
+    },
+    1: { 
+      desc: { zh: "1-2 天輕微粗糙無裂口； 使用輕微預防惡化措施", en: "1-2 days mild roughness without cracks; Use mild preventive measures to avoid worsening" },
+      advice: { 
+        zh: "維持基本保濕(常見推薦凡士林 2 次/日)，洗澡後立即塗抹以鎖水；使用無香料潤膚劑。",
+        en: "Maintain basic moisturizing (commonly recommended petroleum jelly 2 times/day), apply immediately after bath to lock in moisture; use fragrance-free moisturizer."
+      }
+    },
+    2: { 
+      desc: { zh: "3-4 天出現細小裂紋； 使用中度管理原則", en: "3-4 days small cracks appear; Use moderate management principles" },
+      advice: { 
+        zh: "夜間用厚凡士林 + 棉手套/襪子，促進修復；避免熱水（<35°C）；考慮在醫師指導下正確執行濕敷療法於嚴重區域。",
+        en: "Nighttime thick petroleum jelly + cotton gloves/socks to promote repair; avoid hot water (<35°C); consider correct wet wrap therapy under physician guidance on severe areas."
+      }
+    },
+    3: { 
+      desc: { zh: "5-6 天明顯疼痛裂口; 使用中度至中重度管理原則", en: "5-6 days obvious painful cracks; Use moderate to moderately severe management principles" },
+      advice: { 
+        zh: "避免熱水（水溫 <35°C）+ 棉手套整天佩戴 + 頻繁潤膚以減少乾燥；考慮在醫師指導下正確執行漂白水浴(自用可能反效果，甚至灼傷)；行動計劃教育（如學習標準估量潤膚/藥膏用量finger tip unit-FTU 單位）。",
+        en: "Avoid hot water (temperature <35°C) + wear cotton gloves all day + frequent moisturizing to reduce dryness; consider correct dilute bleach bath under physician guidance (self-use may cause adverse effects or burns); patient action plan education (e.g. learn standard fingertip unit - FTU for measuring moisturizer/ointment amount)."
+      }
+    },
+    4: { 
+      desc: { zh: "每天深裂劇痛; 建議皮膚科評估，使用中重度至重度急性期管理原則", en: "Daily deep painful cracks; Recommend dermatology assessment, use moderate-severe to severe acute phase management principles" },
+      advice: { 
+        zh: "皮膚科評估 + 持續(厚凡士林 + 棉手套/襪子)，促進修復 + 避免所有摩擦（如穿寬鬆棉衣）；考慮在醫師指導下正確執行濕敷療法（常見推薦2-3 層濕紗布，短暫使用）；避免刺激物如清潔產品。",
+        en: "Dermatology assessment + continuous (thick petroleum jelly + cotton gloves/socks) to promote repair + avoid all friction (e.g. wear loose cotton clothing); consider correct wet wrap therapy under physician guidance (commonly recommended 2-3 layers wet gauze, short-term use); avoid irritants such as cleansing products."
+      }
+    }
+  },
+  q6: {
+    0: { 
+      desc: { zh: "正常生理脫皮; 使用預防性保養措施", en: "Normal physiological peeling; Use preventive care measures" },
+      advice: { zh: "凡士林日常保養，維持皮膚平衡；預防乾燥。", en: "Daily petroleum jelly care, maintain skin balance; prevent dryness." }
+    },
+    1: { 
+      desc: { zh: "1-2 天正常生理脫皮; 使用輕微預防惡化措施", en: "1-2 days normal physiological peeling; Use mild preventive measures to avoid worsening" },
+      advice: { zh: "凡士林日常保養，洗澡後輕拍乾燥；使用無刺激清潔劑。", en: "Daily petroleum jelly care, pat dry after bath; use non-irritating cleanser." }
+    },
+    2: { 
+      desc: { zh: "3-4 天中度細屑； 使用中度管理原則", en: "3-4 days moderate fine scales; Use moderate management principles" },
+      advice: { 
+        zh: "溫水淋浴後 3 分鐘內厚塗凡士林，軟毛巾輕拍而不擦拭；避免極端溫度。",
+        en: "Thick petroleum jelly within 3 min after lukewarm shower, gently pat with soft towel without rubbing; avoid extreme temperatures."
+      }
+    },
+    3: { 
+      desc: { zh: "5-6 天大片明顯脫屑; 使用中度至中重度管理原則", en: "5-6 days large obvious peeling; Use moderate to moderately severe management principles" },
+      advice: { 
+        zh: "軟毛刷輕刷（順毛方向，避免刺激）+ 厚層凡士林封閉以鎖水；濕敷療法輔助；考慮在醫師指導下正確執行漂白水浴(自用可能反效果，甚至灼傷)",
+        en: "Gently brush with soft brush (along hair direction, avoid irritation) + thick petroleum jelly occlusion to lock moisture; wet wrap therapy as adjunct; consider correct dilute bleach bath under physician guidance (self-use may cause adverse effects or burns)"
+      }
+    },
+    4: { 
+      desc: { zh: "每天嚴重銀屑狀; 建議皮膚科評估，使用中重度至重度急性期管理原則", en: "Daily severe psoriasiform scaling; Recommend dermatology assessment, use moderate-severe to severe acute phase management principles" },
+      advice: { 
+        zh: "皮膚科評估 + 溫和去角質（輕刷）+ 持續厚潤膚；考慮在醫師指導下正確執行濕敷療法（濕衣覆蓋）",
+        en: "Dermatology assessment + gentle exfoliation (light brushing) + continuous thick moisturizing; consider correct wet wrap therapy under physician guidance (wet clothing coverage)"
+      }
+    }
+  },
+  q7: {
+    0: { 
+      desc: { zh: "正常皮膚濕潤度; 使用預防性保養措施", en: "Normal skin hydration; Use preventive care measures" },
+      advice: { zh: "維持基本生活習慣；每日保濕。", en: "Maintain basic lifestyle habits; daily moisturizing." }
+    },
+    1: { 
+      desc: { zh: "1-2 天輕度乾燥; 使用輕微預防惡化措施", en: "1-2 days mild dryness; Use mild preventive measures to avoid worsening" },
+      advice: { 
+        zh: "凡士林(常見建議1-2 次/日)，洗澡後立即塗抹以預防進一步乾燥；使用無香料潤膚劑。",
+        en: "Petroleum jelly (commonly recommended 1-2 times/day), apply immediately after bath to prevent further dryness; use fragrance-free moisturizer."
+      }
+    },
+    2: { 
+      desc: { zh: "3-4 天中度粗糙； 使用中度管理原則", en: "3-4 days moderate roughness; Use moderate management principles" },
+      advice: { 
+        zh: "每次洗澡建議短浴 不多於10 分鐘; 每次洗澡後立即潤膚（3 分鐘內），避免熱風吹乾（如使用涼風或自然乾燥）。",
+        en: "Recommend short bath not exceeding 10 min each time; apply moisturizer immediately after bath (within 3 min), avoid hot air drying (use cool air or natural drying)."
+      }
+    },
+    3: { 
+      desc: { zh: "5-6 天明顯脫皮粗糙; 使用中度至中重度管理原則", en: "5-6 days obvious peeling and roughness; Use moderate to moderately severe management principles" },
+      advice: { 
+        zh: "凡士林(常見建議每日 4 次） + 避免熱水澡（水溫 <37°C）+ 除濕機控制濕度 <60%；考慮在醫師指導下正確執行濕敷療法於嚴重區域。",
+        en: "Petroleum jelly (commonly recommended 4 times/day) + avoid hot baths (temperature <37°C) + dehumidifier to control humidity <60%; consider correct wet wrap therapy under physician guidance on severe areas."
+      }
+    },
+    4: { 
+      desc: { zh: "每天魚鱗樣嚴重乾燥; 使用中重度至重度急性期管理原則", en: "Daily severe ichthyosis-like dryness; Use moderate-severe to severe acute phase management principles" },
+      advice: { 
+        zh: "浴盆浸泡（溫水短浴）+ 厚凡士林裹敷整夜；若感染，考慮在醫師指導下正確執行漂白水浴(自用可能反效果，甚至灼傷)；記錄日常護理或行動計劃。",
+        en: "Tub soaking (lukewarm short bath) + thick petroleum jelly occlusion overnight; if infected, consider correct dilute bleach bath under physician guidance (self-use may cause adverse effects or burns); record daily care or action plan."
+      }
+    }
+  }
+};
+
+  // 渲染所有項目（包含 4 分）
+  let mildBlocks = [];
+  Object.entries(scores).forEach(([key, val]) => {
+    const item = adviceData[key]?.[val];
+    if (item) {
+      const isSevere = val === 4;
+      mildBlocks.push(`
+        <div class="${isSevere ? 'severe-item' : ''}">
+          <strong>${labels[key].zh} / ${labels[key].en}：${val} 分 (${item.desc.zh} / ${item.desc.en})</strong><br>
+          <div style="margin:8px 0; ${isSevere ? 'color:#c0392b; font-weight:600;' : ''}">
+            ${item.advice.zh}<br>
+            <small style="color:#555;">${item.advice.en}</small>
+          </div>
+          ${isSevere ? '<small style="color:#c0392b; font-weight:bold;">（每天級別 / Daily level – 強烈建議立即就醫 / Strongly recommend immediate medical consultation）</small>' : ''}
+        </div>
+      `);
+    }
+  });
+
+  document.getElementById('mildResult').innerHTML = `
+    <div class="result-title">🧩 所有症狀分級建議 / All Symptom Graded Advice</div>
+    <div>${mildBlocks.join('')}</div>`;
+  document.getElementById('mildResult').style.display = 'block';
+
+  // 渲染環境調整
+  document.getElementById('envResult').innerHTML = envAdvice;
+  document.getElementById('envResult').style.display = 'block';
+
+  // 顯示問卷按鈕
+  document.getElementById('surveyBtn').style.display = 'block';
+
+  // 顯示 log
+  document.getElementById('logicLog').textContent = log.join('\n');
+  document.getElementById('logicLog').style.display = 'block';
+}
+</script>
+</body>
+</html>
