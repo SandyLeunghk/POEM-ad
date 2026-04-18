@@ -163,16 +163,20 @@ function runDecision() {
   let priorityHTML = '';
   if (q4 === 4) {
     priorityHTML = `<div class="result-title">🚨 首要治療建議 / Priority Recommendation</div>
-      <div class="severe-item">滲液Weeping = 4（最高風險）<br>立即安排皮膚科評估 + 使用吸收性敷料 + 避免擠壓</div>`;
+      <div class="severe-item">滲液Weeping = 4（最高風險）<br>立即安排皮膚科評估 + 使用吸收性敷料 + 避免擠壓 
+        Arrange a dermatology assessment immediately + use absorbent dressings + avoid squeezing.</div>`;
   } else if (q2 === 4) {
     priorityHTML = `<div class="result-title">🚨 首要治療建議 / Priority Recommendation</div>
-      <div class="severe-item">睡眠干擾Sleep disturbance = 4<br>48小時內尋求醫師評估 + 優化睡眠衛生</div>`;
+      <div class="severe-item">睡眠干擾Sleep disturbance = 4<br>48小時內尋求醫師評估 + 優化睡眠衛生
+        Consult a physician within 48 hours and improve sleep hygiene practices.</div>`;
   } else if (q3 === 4 || q6 === 4 || q1 === 4) {
     priorityHTML = `<div class="result-title">🚨 首要治療建議 / Priority Recommendation</div>
-      <div class="severe-item">流血Bleeding / 脫屑Flaking / 搔癢Itching = 4<br>加強局部護理 + 避免抓癢 + 每日檢查感染跡象</div>`;
+      <div class="severe-item">流血Bleeding / 脫屑Flaking / 搔癢Itching = 4<br>加強局部護理 + 避免抓癢 + 每日檢查感染跡象
+        Strengthen local skin care, refrain from scratching, and perform daily checks for signs of infection.</div>`;
   } else if (q5 === 4 || q7 === 4) {
     priorityHTML = `<div class="result-title">🚨 首要治療建議 / Priority Recommendation</div>
-      <div class="severe-item">皸裂Cracking / Dryness = 4<br>加強屏障修復 + 避免熱水 + 維持保濕</div>`;
+      <div class="severe-item">皸裂Cracking / Dryness = 4<br>加強屏障修復 + 避免熱水 + 維持保濕
+        Support skin barrier repair, avoid using hot water for bathing, and keep the skin well moisturized.</div>`;
   }
 
   document.getElementById('priorityResult').innerHTML = priorityHTML;
